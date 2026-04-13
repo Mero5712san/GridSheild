@@ -1,4 +1,3 @@
-import { useState } from "react";
 import useSimulation from "@/hooks/useSimulation";
 import StatsCards from "@/components/dashboard/StatsCards";
 import LoadChart from "@/components/dashboard/LoadChart";
@@ -8,7 +7,12 @@ import NodeComparisonChart from "@/components/dashboard/NodeComparisonChart";
 import { Activity, Clock } from "lucide-react";
 
 export default function Dashboard() {
-    const { readings, gridHealth, alerts, history } = useSimulation();
+    const {
+        readings,
+        gridHealth,
+        alerts,
+        history,
+    } = useSimulation();
 
     if (!gridHealth) {
         return (

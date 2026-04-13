@@ -12,6 +12,8 @@ import GridView3D from './pages/GridView3D';
 import NodeMonitoring from './pages/NodeMonitoring';
 import AlertsLog from './pages/AlertsLog';
 import ControlPanel from './pages/ControlPanel';
+import RecommendationCenter from './pages/RecommendationCenter';
+import ReportsCenter from './pages/ReportsCenter';
 
 const AuthenticatedApp = () => {
     const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -45,6 +47,8 @@ const AuthenticatedApp = () => {
                 <Route path="/nodes" element={<NodeMonitoring />} />
                 <Route path="/alerts" element={<AlertsLog />} />
                 <Route path="/control" element={<ControlPanel />} />
+                <Route path="/recommendations" element={<RecommendationCenter />} />
+                <Route path="/reports" element={<ReportsCenter />} />
                 <Route path="*" element={<PageNotFound />} />
             </Route>
         </Routes>

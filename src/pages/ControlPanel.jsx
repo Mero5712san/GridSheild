@@ -1,8 +1,7 @@
 import useSimulation from "@/hooks/useSimulation";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Play, Pause, Zap, ShieldOff, ShieldCheck, Power } from "lucide-react";
+import { Play, Pause, Zap, ShieldCheck, Power } from "lucide-react";
 
 const priorityColors = {
     high: "border-red-500/30 bg-red-500/5",
@@ -93,8 +92,8 @@ export default function ControlPanel() {
                             <div
                                 key={node.name}
                                 className={`rounded-lg border p-4 transition-all ${isDisconnected
-                                        ? "border-gray-500/30 bg-gray-500/5 opacity-60"
-                                        : priorityColors[node.priority]
+                                    ? "border-gray-500/30 bg-gray-500/5 opacity-60"
+                                    : priorityColors[node.priority]
                                     }`}
                             >
                                 <div className="flex items-center justify-between">

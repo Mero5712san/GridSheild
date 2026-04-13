@@ -1,4 +1,20 @@
-import { generateSensorData, getGridHealth, getLoadManagementActions, predictOverload, getNodeConfigs } from "../src/lib/simulationEngine.js";
+import {
+    generateSensorData,
+    getGridHealth,
+    getLoadManagementActions,
+    predictOverload,
+    getNodeConfigs,
+    getSubstationMonitoring,
+    getLoadFluctuationPrediction,
+    getComponentHealth,
+    getInfrastructureRecommendations,
+    getSensorOptimization,
+    getEnergyFlowVisualization,
+    getGridStabilityControl,
+    getEnergyUsageBilling,
+    getRecommendationEngine,
+    generateReportPayload,
+} from "../src/lib/simulationEngine.js";
 
 function createInitialState() {
     return {
@@ -6,6 +22,16 @@ function createInitialState() {
         gridHealth: null,
         alerts: [],
         history: [],
+        recommendationEngine: [],
+        substationMonitoring: [],
+        sensorOptimization: null,
+        loadFluctuationPrediction: { zones: [] },
+        componentHealth: null,
+        infrastructureRecommendations: [],
+        energyFlow: [],
+        stabilityControl: null,
+        billing: null,
+        report: null,
         overloadZone: null,
         disconnectedNodes: [],
         isRunning: true,
@@ -120,6 +146,21 @@ export class GridSimulationRuntime {
 
         const totalLoad = data.reduce((sum, reading) => sum + reading.power, 0);
         const predicted = totalLoad * (1 + (Math.random() - 0.3) * 0.15);
+        const substationMonitoring = getSubstationMonitoring(data);
+        const loadFluctuationPrediction = getLoadFluctuationPrediction(data);
+        const componentHealth = getComponentHealth(data);
+        const infrastructureRecommendations = getInfrastructureRecommendations(data, componentHealth);
+        const sensorOptimization = getSensorOptimization(data);
+        const energyFlow = getEnergyFlowVisualization(data);
+        const stabilityControl = getGridStabilityControl(data, health);
+        const billing = getEnergyUsageBilling(data);
+        const recommendationEngine = getRecommendationEngine(
+            data,
+            actions,
+            loadFluctuationPrediction,
+            infrastructureRecommendations,
+            stabilityControl
+        );
 
         this.state = {
             ...this.state,
@@ -131,6 +172,25 @@ export class GridSimulationRuntime {
                 load: totalLoad,
                 predicted: Math.round(predicted),
             }].slice(-30),
+            recommendationEngine,
+            substationMonitoring,
+            sensorOptimization,
+            loadFluctuationPrediction,
+            componentHealth,
+            infrastructureRecommendations,
+            energyFlow,
+            stabilityControl,
+            billing,
+            report: generateReportPayload({
+                gridHealth: health,
+                substationMonitoring,
+                recommendationEngine,
+                loadFluctuationPrediction,
+                componentHealth,
+                infrastructureRecommendations,
+                billing,
+                alerts: [...this.state.alerts, ...newAlerts].slice(-50),
+            }),
             instabilityActive: this.instabilityRef.ticks > 0 || instabilityLevel > 0,
         };
 

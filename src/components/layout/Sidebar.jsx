@@ -1,7 +1,7 @@
 ﻿import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
-import { LayoutDashboard, Activity, AlertTriangle, Settings, Zap, Globe } from "lucide-react";
+import { LayoutDashboard, Activity, AlertTriangle, Settings, Zap, Globe, Bot, FileText } from "lucide-react";
 import useSimulation from "@/hooks/useSimulation";
 
 const navItems = [
@@ -10,6 +10,8 @@ const navItems = [
     { path: "/nodes", label: "Node Monitor", icon: Activity },
     { path: "/alerts", label: "Alerts Log", icon: AlertTriangle },
     { path: "/control", label: "Control Panel", icon: Settings },
+    { path: "/recommendations", label: "Recommendations", icon: Bot },
+    { path: "/reports", label: "Reports", icon: FileText },
 ];
 
 export default function Sidebar() {

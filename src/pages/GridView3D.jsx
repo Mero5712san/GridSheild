@@ -31,7 +31,11 @@ const statusLegend = [
 ];
 
 export default function GridView3D() {
-    const { readings, gridHealth, triggerInstability, instabilityActive } = useSimulation();
+    const { readings, gridHealth, energyFlow, triggerInstability, instabilityActive } = useSimulation();
+    const flowSummary = (energyFlow || []).reduce((acc, flow) => {
+        acc[flow.flowColor] = (acc[flow.flowColor] || 0) + 1;
+        return acc;
+    }, {});
     const healthBorderClass = !gridHealth
         ? "border-border"
         : gridHealth.healthScore >= 85
@@ -45,7 +49,7 @@ export default function GridView3D() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-foreground tracking-tight">Stimulation</h1>
+                <h1 className="text-2xl font-bold text-foreground tracking-tight">3D Smart Grid Visualization</h1>
                 <button
                     type="button"
                     onClick={triggerInstability}
@@ -54,6 +58,25 @@ export default function GridView3D() {
                 >
                     <Siren className="h-4 w-4" />
                 </button>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="rounded-lg border border-green-500/20 bg-green-500/10 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-green-300">Normal Flow</p>
+                    <p className="text-lg font-semibold text-green-200">{flowSummary.green || 0}</p>
+                </div>
+                <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-yellow-300">High Load</p>
+                    <p className="text-lg font-semibold text-yellow-200">{flowSummary.yellow || 0}</p>
+                </div>
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-red-300">Overload Risk</p>
+                    <p className="text-lg font-semibold text-red-200">{flowSummary.red || 0}</p>
+                </div>
+                <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-blue-300">Load Reduced</p>
+                    <p className="text-lg font-semibold text-blue-200">{flowSummary.blue || 0}</p>
+                </div>
             </div>
 
             <div className={`relative overflow-hidden rounded-xl border-2 bg-card ${healthBorderClass}`} style={{ height: "500px" }}>
