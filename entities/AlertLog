@@ -1,0 +1,57 @@
+{
+    "name": "AlertLog",
+        "type": "object",
+            "properties": {
+        "alert_type": {
+            "type": "string",
+                "enum": [
+                    "overload_predicted",
+                    "load_disconnected",
+                    "load_reduced",
+                    "grid_stabilized",
+                    "manual_override",
+                    "threshold_breach"
+                ],
+                    "description": "Type of alert"
+        },
+        "severity": {
+            "type": "string",
+                "enum": [
+                    "info",
+                    "warning",
+                    "critical",
+                    "success"
+                ],
+                    "description": "Alert severity"
+        },
+        "zone": {
+            "type": "number",
+                "description": "Affected zone"
+        },
+        "node_name": {
+            "type": "string",
+                "description": "Affected node name"
+        },
+        "message": {
+            "type": "string",
+                "description": "Alert message"
+        },
+        "predicted_load": {
+            "type": "number",
+                "description": "Predicted load at time of alert"
+        },
+        "action_taken": {
+            "type": "string",
+                "description": "Action taken in response"
+        },
+        "resolved": {
+            "type": "boolean",
+                "description": "Whether the alert has been resolved"
+        }
+    },
+    "required": [
+        "alert_type",
+        "severity",
+        "message"
+    ]
+}

@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* LIGHT THEME */
+    --background: 210 20% 96%;
+    --foreground: 222 47% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 8%;
+    --primary: 199 89% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 90%;
+    --secondary-foreground: 222 47% 12%;
+    --muted: 210 20% 92%;
+    --muted-foreground: 215 20% 45%;
+    --accent: 142 72% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 56%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 20% 85%;
+    --input: 210 20% 85%;
+    --ring: 199 89% 40%;
+    --chart-1: 199 89% 40%;
+    --chart-2: 142 72% 40%;
+    --chart-3: 45 93% 48%;
+    --chart-4: 0 84% 56%;
+    --chart-5: 270 70% 55%;
+    --radius: 0.75rem;
+    --warning: 45 93% 48%;
+    --success: 142 72% 40%;
+    --info: 199 89% 40%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 15%;
+    --sidebar-primary: 199 89% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 93%;
+    --sidebar-accent-foreground: 222 47% 15%;
+    --sidebar-border: 210 20% 87%;
+    --sidebar-ring: 199 89% 40%;
+  }
+
+  .dark {
+    /* DARK THEME */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+    --card: 222 44% 8%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 44% 8%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 222 47% 6%;
+    --secondary: 222 30% 14%;
+    --secondary-foreground: 210 40% 90%;
+    --muted: 222 30% 12%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 142 72% 50%;
+    --accent-foreground: 222 47% 6%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 30% 16%;
+    --input: 222 30% 16%;
+    --ring: 199 89% 48%;
+    --chart-1: 199 89% 48%;
+    --chart-2: 142 72% 50%;
+    --chart-3: 45 93% 58%;
+    --chart-4: 0 84% 60%;
+    --chart-5: 270 70% 60%;
+    --warning: 45 93% 58%;
+    --success: 142 72% 50%;
+    --info: 199 89% 48%;
+    --sidebar-background: 222 44% 5%;
+    --sidebar-foreground: 210 40% 90%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 30% 12%;
+    --sidebar-accent-foreground: 210 40% 90%;
+    --sidebar-border: 222 30% 14%;
+    --sidebar-ring: 199 89% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: hsl(var(--muted)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); }
+
+/* Glow effects */
+.glow-blue { box-shadow: 0 0 20px rgba(14,165,233,0.15), 0 0 40px rgba(14,165,233,0.05); }
+.glow-green { box-shadow: 0 0 20px rgba(34,197,94,0.15), 0 0 40px rgba(34,197,94,0.05); }
+.glow-red { box-shadow: 0 0 20px rgba(239,68,68,0.15), 0 0 40px rgba(239,68,68,0.05); }
+.glow-yellow { box-shadow: 0 0 20px rgba(234,179,8,0.15), 0 0 40px rgba(234,179,8,0.05); }
+
+@keyframes pulse-glow { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }

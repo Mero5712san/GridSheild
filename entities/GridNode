@@ -1,0 +1,83 @@
+{
+    "name": "GridNode",
+        "type": "object",
+            "properties": {
+        "node_name": {
+            "type": "string",
+                "description": "Name of the grid node"
+        },
+        "node_type": {
+            "type": "string",
+                "enum": [
+                    "power_station",
+                    "transformer",
+                    "residential",
+                    "industrial",
+                    "hospital",
+                    "street_light",
+                    "ev_charging"
+                ],
+                    "description": "Type of grid node"
+        },
+        "priority": {
+            "type": "string",
+                "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                ],
+                    "description": "Load priority level"
+        },
+        "zone": {
+            "type": "number",
+                "description": "Grid zone number"
+        },
+        "max_load": {
+            "type": "number",
+                "description": "Maximum load capacity in watts"
+        },
+        "status": {
+            "type": "string",
+                "enum": [
+                    "active",
+                    "reduced",
+                    "disconnected",
+                    "warning",
+                    "critical"
+                ],
+                    "description": "Current node status"
+        },
+        "voltage": {
+            "type": "number",
+                "description": "Current voltage reading"
+        },
+        "current": {
+            "type": "number",
+                "description": "Current amperage reading"
+        },
+        "power": {
+            "type": "number",
+                "description": "Current power consumption in watts"
+        },
+        "position_x": {
+            "type": "number",
+                "description": "3D position X"
+        },
+        "position_y": {
+            "type": "number",
+                "description": "3D position Y"
+        },
+        "position_z": {
+            "type": "number",
+                "description": "3D position Z"
+        }
+    },
+    "required": [
+        "node_name",
+        "node_type",
+        "priority",
+        "zone",
+        "max_load",
+        "status"
+    ]
+}
