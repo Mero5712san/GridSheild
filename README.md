@@ -6,7 +6,7 @@ Smart-grid dashboard with a websocket-backed simulation backend.
 
 The application shares one live simulation state across the dashboard, 3D view, alerts, node table, and control panel.
 
-The backend is the source of truth when available. The frontend connects to it over WebSocket and falls back to a local simulation if the backend is offline.
+The backend is the only source of truth. The frontend connects over WebSocket and renders server snapshots only.
 
 ## Getting Started
 
@@ -60,7 +60,22 @@ The backend broadcasts snapshots containing:
 - `isRunning`
 - `instabilityActive`
 - `nodeConfigs`
+- `pageFeeds.dashboard`
+- `pageFeeds.controlPanel`
+- `pageFeeds.alertsLog`
+- `pageFeeds.nodeMonitoring`
+- `pageFeeds.gridView3D`
 - connection metadata
+
+## Page Feed Endpoint
+
+- URL: `http://localhost:3001/api/pages/:pageName`
+- Supported page names:
+	- `dashboard`
+	- `controlPanel`
+	- `alertsLog`
+	- `nodeMonitoring`
+	- `gridView3D`
 
 ## Project Structure
 

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import useSimulation from "@/hooks/useSimulation";
 import StatsCards from "@/components/dashboard/StatsCards";
 import LoadChart from "@/components/dashboard/LoadChart";
@@ -8,9 +7,21 @@ import NodeComparisonChart from "@/components/dashboard/NodeComparisonChart";
 import { Activity, Clock } from "lucide-react";
 
 export default function Dashboard() {
-    const { readings, gridHealth, alerts, history } = useSimulation();
+    const {
+        readings,
+        gridHealth,
+        alerts,
+        history,
+        pageFeeds,
+    } = useSimulation();
 
-    if (!gridHealth) {
+    const dashboardFeed = pageFeeds?.dashboard;
+    const feedReadings = dashboardFeed?.readings || readings;
+    const feedGridHealth = dashboardFeed?.gridHealth || gridHealth;
+    const feedAlerts = dashboardFeed?.alerts || alerts;
+    const feedHistory = dashboardFeed?.history || history;
+
+    if (!feedGridHealth) {
         return (
             <div className="flex items-center justify-center h-[60vh]">
                 <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -38,22 +49,22 @@ export default function Dashboard() {
             </div>
 
             {/* Stats */}
-            <StatsCards gridHealth={gridHealth} />
+            <StatsCards gridHealth={feedGridHealth} />
 
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                    <LoadChart history={history} />
+                    <LoadChart history={feedHistory} />
                 </div>
-                <PowerDistribution readings={readings} />
+                <PowerDistribution readings={feedReadings} />
             </div>
 
             {/* Bottom Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                    <NodeComparisonChart readings={readings} />
+                    <NodeComparisonChart readings={feedReadings} />
                 </div>
-                <AlertsPanel alerts={alerts} />
+                <AlertsPanel alerts={feedAlerts} />
             </div>
         </div>
     );

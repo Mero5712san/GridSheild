@@ -7,6 +7,7 @@ import {
     clearOverload,
     toggleNode,
     toggleSimulation,
+    applyRecommendation,
 } from "@/lib/simulationClient";
 
 export default function useSimulation() {
@@ -19,5 +20,6 @@ export default function useSimulation() {
         clearOverload,
         toggleNode,
         toggleSimulation,
+        applyRecommendation,
     };
 }

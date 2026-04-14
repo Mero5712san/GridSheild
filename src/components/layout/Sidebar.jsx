@@ -1,15 +1,27 @@
 ﻿import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
-import { LayoutDashboard, Activity, AlertTriangle, Settings, Zap, Globe } from "lucide-react";
+import { LayoutDashboard, Activity, AlertTriangle, Settings, Zap, Globe, Bot, FileText, Cpu, Radar, LineChart, HeartPulse, Gauge, Route } from "lucide-react";
 import useSimulation from "@/hooks/useSimulation";
 
-const navItems = [
+const baseNavItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/grid-3d", label: "Stimulate", icon: Globe },
+    { path: "/grid-3d", label: "stimulation", icon: Globe },
     { path: "/nodes", label: "Node Monitor", icon: Activity },
     { path: "/alerts", label: "Alerts Log", icon: AlertTriangle },
     { path: "/control", label: "Control Panel", icon: Settings },
+];
+
+const intelligenceNavItems = [
+    { path: "/recommendations", label: "Recommendations", icon: Bot },
+    { path: "/substation-monitoring", label: "Substation Monitoring", icon: Radar },
+    { path: "/load-prediction", label: "Load Prediction", icon: LineChart },
+    { path: "/component-health", label: "Component Health", icon: HeartPulse },
+    { path: "/sensor-optimization", label: "Sensor Optimization", icon: Cpu },
+    { path: "/grid-stability", label: "Grid Stability", icon: Gauge },
+    { path: "/infrastructure-upgrades", label: "Infrastructure Upgrade", icon: Route },
+    { path: "/energy-flow", label: "Energy Flow", icon: Zap },
+    { path: "/reports", label: "Reports", icon: FileText },
 ];
 
 export default function Sidebar() {
@@ -36,24 +48,49 @@ export default function Sidebar() {
                 </div>
             </div>
 
-            <nav className="flex-1 px-3 py-4 space-y-1">
-                {navItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    const Icon = item.icon;
-                    return (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
-                                ? "bg-primary/10 text-primary"
-                                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                                }`}
-                        >
-                            <Icon className="w-4 h-4" />
-                            {item.label}
-                        </Link>
-                    );
-                })}
+            <nav className="flex-1 px-3 py-4 space-y-3 overflow-y-auto">
+                <div className="space-y-1">
+                    {baseNavItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                                    }`}
+                            >
+                                <Icon className="w-4 h-4" />
+                                {item.label}
+                            </Link>
+                        );
+                    })}
+                </div>
+
+                <div>
+                    <p className="px-3 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground/80">Intelligence</p>
+                    <div className="space-y-1">
+                        {intelligenceNavItems.map((item) => {
+                            const isActive = location.pathname === item.path;
+                            const Icon = item.icon;
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                                        ? "bg-primary/10 text-primary"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                                        }`}
+                                >
+                                    <Icon className="w-4 h-4" />
+                                    {item.label}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
             </nav>
 
             <div className="px-4 py-4 border-t border-sidebar-border space-y-3">

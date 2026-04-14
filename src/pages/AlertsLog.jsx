@@ -17,14 +17,15 @@ const colorMap = {
 };
 
 export default function AlertsLog() {
-    const { alerts } = useSimulation();
-    const reversed = [...alerts].reverse();
-
-    const counts = {
-        critical: alerts.filter((a) => a.severity === "critical").length,
-        warning: alerts.filter((a) => a.severity === "warning").length,
-        success: alerts.filter((a) => a.severity === "success").length,
-        info: alerts.filter((a) => a.severity === "info").length,
+    const { alerts, pageFeeds } = useSimulation();
+    const feed = pageFeeds?.alertsLog;
+    const feedAlerts = feed?.alerts || alerts;
+    const reversed = feed?.reversed || [...feedAlerts].reverse();
+    const counts = feed?.counts || {
+        critical: feedAlerts.filter((a) => a.severity === "critical").length,
+        warning: feedAlerts.filter((a) => a.severity === "warning").length,
+        success: feedAlerts.filter((a) => a.severity === "success").length,
+        info: feedAlerts.filter((a) => a.severity === "info").length,
     };
 
     return (
@@ -35,7 +36,7 @@ export default function AlertsLog() {
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary">
                     <Shield className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-xs font-mono text-muted-foreground">{alerts.length} events</span>
+                    <span className="text-xs font-mono text-muted-foreground">{feedAlerts.length} events</span>
                 </div>
             </div>
 
