@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="GridShield icon">
+  <rect width="256" height="256" rx="48" fill="#020617"/>
+  <path d="M128 34L58 74v108l70 40 70-40V74l-70-40zm0 20l50 29v89l-50 28-50-28V83l50-29z" fill="#0ea5e9"/>
+  <path d="M128 80l-26 44h19l-9 52 42-60h-22l9-36z" fill="#22c55e"/>
+</svg>

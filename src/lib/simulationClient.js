@@ -56,6 +56,7 @@ const store = globalThis.__gridSimulationClient || {
     pollTimer: null,
     wsAttempts: 0,
     wsDisabled: false,
+    pollingDisabled: false,
     backendMode: false,
 };
 
@@ -124,19 +125,26 @@ async function fetchSnapshot() {
         headers: { Accept: "application/json" },
     });
     if (!response.ok) {
-        throw new Error(`Snapshot request failed: ${response.status}`);
+        const error = new Error(`Snapshot request failed: ${response.status}`);
+        error.status = response.status;
+        throw error;
     }
     return response.json();
 }
 
 function startPolling() {
+    if (store.pollingDisabled) return;
     if (store.pollTimer) return;
 
     const run = async () => {
         try {
             const remoteState = await fetchSnapshot();
             applyRemoteSnapshot(remoteState);
-        } catch {
+        } catch (error) {
+            if (error?.status === 404) {
+                store.pollingDisabled = true;
+                stopPolling();
+            }
             store.backendMode = false;
             store.state = { ...store.state, connectionStatus: "offline", app: { ...store.state.app, mode: "backend-only" } };
             emit();
