@@ -36,7 +36,7 @@ export default function Sidebar() {
             : { label: "Offline", dotClass: "bg-red-500" };
 
     return (
-        <aside className="fixed left-0 top-0 bottom-0 w-[220px] bg-sidebar border-r border-sidebar-border flex flex-col z-50">
+        <aside className="w-full h-full bg-sidebar border-r border-sidebar-border flex flex-col">
             <div className="px-5 py-5 border-b border-sidebar-border">
                 <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
