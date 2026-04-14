@@ -2,13 +2,24 @@ const isNode = typeof window === 'undefined';
 const windowObj = isNode ? { localStorage: new Map() } : window;
 const storage = windowObj.localStorage;
 
+const isNullishParam = (value) => {
+    if (value === undefined || value === null) return true;
+    if (typeof value !== 'string') return false;
+    const normalized = value.trim().toLowerCase();
+    return normalized === '' || normalized === 'null' || normalized === 'undefined';
+}
+
+const normalizeParamValue = (value) => {
+    return isNullishParam(value) ? null : value;
+}
+
 const toSnakeCase = (str) => {
     return str.replace(/([A-Z])/g, '_$1').toLowerCase();
 }
 
 const getAppParamValue = (paramName, { defaultValue = undefined, removeFromUrl = false } = {}) => {
     if (isNode) {
-        return defaultValue;
+        return normalizeParamValue(defaultValue);
     }
     const storageKey = `base44_${toSnakeCase(paramName)}`;
     const urlParams = new URLSearchParams(window.location.search);
@@ -19,18 +30,22 @@ const getAppParamValue = (paramName, { defaultValue = undefined, removeFromUrl =
             }${window.location.hash}`;
         window.history.replaceState({}, document.title, newUrl);
     }
-    if (searchParam) {
+    if (!isNullishParam(searchParam)) {
         storage.setItem(storageKey, searchParam);
         return searchParam;
     }
-    if (defaultValue) {
+    if (searchParam !== null) {
+        storage.removeItem(storageKey);
+    }
+    if (!isNullishParam(defaultValue)) {
         storage.setItem(storageKey, defaultValue);
         return defaultValue;
     }
     const storedValue = storage.getItem(storageKey);
-    if (storedValue) {
+    if (!isNullishParam(storedValue)) {
         return storedValue;
     }
+    storage.removeItem(storageKey);
     return null;
 }
 
