@@ -22,6 +22,16 @@ export const AuthProvider = ({ children }) => {
             setIsLoadingPublicSettings(true);
             setAuthError(null);
 
+            // For self-hosted runtime, app_id may be intentionally absent.
+            // In that mode, skip Base44 endpoints and continue without auth gating.
+            if (!appParams.appId) {
+                setAppPublicSettings(null);
+                setIsAuthenticated(false);
+                setIsLoadingPublicSettings(false);
+                setIsLoadingAuth(false);
+                return;
+            }
+
             // First, check app public settings (with token if available)
             // This will tell us if auth is required, user not registered, etc.
             const appClient = createAxiosClient({
