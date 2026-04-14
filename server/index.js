@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT || 3001);
 const DIST_DIR = path.resolve(__dirname, "../dist");
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || `http://localhost:${PORT}`;
 
 const app = express();
 const server = http.createServer(app);
@@ -135,6 +136,7 @@ simulation.runTick();
 setInterval(() => simulation.runTick(), 2000);
 
 server.listen(PORT, () => {
-    console.log(`GridShield backend listening on http://localhost:${PORT}`);
-    console.log(`WebSocket endpoint: ws://localhost:${PORT}/ws`);
+    const wsBaseUrl = PUBLIC_BASE_URL.replace(/^http/i, "ws");
+    console.log(`GridShield backend listening on ${PUBLIC_BASE_URL}`);
+    console.log(`WebSocket endpoint: ${wsBaseUrl}/ws`);
 });
