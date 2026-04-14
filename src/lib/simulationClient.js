@@ -74,6 +74,14 @@ function getApiBaseUrl() {
     return "";
 }
 
+function hasBackendApi() {
+    if (typeof window === "undefined") return false;
+    if (getApiBaseUrl()) return true;
+
+    const host = window.location.hostname;
+    return host === "localhost" || host === "127.0.0.1";
+}
+
 function shouldUseWebSocket() {
     if (typeof window === "undefined") return false;
     if (store.wsDisabled) return false;
@@ -133,6 +141,7 @@ async function fetchSnapshot() {
 }
 
 function startPolling() {
+    if (!hasBackendApi()) return;
     if (store.pollingDisabled) return;
     if (store.pollTimer) return;
 
