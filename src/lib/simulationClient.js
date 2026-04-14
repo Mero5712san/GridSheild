@@ -65,11 +65,29 @@ function emit() {
 function getWsUrl() {
     if (typeof window === "undefined") return null;
 
-    const configured = import.meta.env.VITE_GRID_WS_URL;
-    if (configured) return configured;
+    const configuredWsUrl = import.meta.env.VITE_GRID_WS_URL;
+    if (configuredWsUrl) return configuredWsUrl;
+
+    const configuredApiUrl = import.meta.env.VITE_GRID_API_URL;
+    if (configuredApiUrl) {
+        try {
+            const apiUrl = new URL(configuredApiUrl);
+            const wsProtocol = apiUrl.protocol === "https:" ? "wss:" : "ws:";
+            return `${wsProtocol}//${apiUrl.host}/ws`;
+        } catch {
+            // Ignore invalid API URL and continue with automatic fallback.
+        }
+    }
+
+    const host = window.location.hostname;
+    const isLocalHost = host === "localhost" || host === "127.0.0.1";
+    if (isLocalHost) {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        return `${protocol}//${host}:3001/ws`;
+    }
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${window.location.hostname}:3001/ws`;
+    return `${protocol}//${window.location.host}/ws`;
 }
 
 function applyRemoteSnapshot(remoteState) {

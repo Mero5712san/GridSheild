@@ -33,7 +33,8 @@ npm run serve
 
 ## WebSocket Endpoint
 
-- URL: `ws://localhost:3001/ws`
+- Production URL: `wss://grid-sheild-tnyw.vercel.app/ws`
+- Local URL: `ws://localhost:3001/ws`
 - Override with `VITE_GRID_WS_URL` if needed
 
 ## WebSocket Commands
@@ -69,13 +70,22 @@ The backend broadcasts snapshots containing:
 
 ## Page Feed Endpoint
 
-- URL: `http://localhost:3001/api/pages/:pageName`
+- Production URL: `https://grid-sheild-tnyw.vercel.app/api/pages/:pageName`
+- Local URL: `http://localhost:3001/api/pages/:pageName`
 - Supported page names:
 	- `dashboard`
 	- `controlPanel`
 	- `alertsLog`
 	- `nodeMonitoring`
 	- `gridView3D`
+
+## Environment Variables
+
+- Frontend (`Vite`):
+	- `VITE_GRID_WS_URL=wss://grid-sheild-tnyw.vercel.app/ws`
+	- `VITE_GRID_API_URL=https://grid-sheild-tnyw.vercel.app`
+- Backend (`Node`):
+	- `PUBLIC_BASE_URL=https://grid-sheild-tnyw.vercel.app`
 
 ## Project Structure
 
