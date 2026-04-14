@@ -27,6 +27,72 @@ app.get("/api/state", (_req, res) => {
     res.json(simulation.getSnapshot());
 });
 
+app.get("/api/pages/:pageName", (req, res) => {
+    const snapshot = simulation.getSnapshot();
+    const pageName = req.params.pageName;
+    const feed = snapshot.pageFeeds?.[pageName];
+
+    if (!feed) {
+        res.status(404).json({ message: `Unknown page feed: ${pageName}` });
+        return;
+    }
+
+    res.json({
+        page: pageName,
+        updatedAt: snapshot.serverTime,
+        payload: feed,
+    });
+});
+
+app.get("/api/modules/:moduleName", (req, res) => {
+    const snapshot = simulation.getSnapshot();
+    const moduleMap = {
+        recommendations: snapshot.recommendationEngine,
+        "substation-monitoring": {
+            data: snapshot.substationMonitoring,
+            trends: snapshot.moduleTrends?.substationLoadHistory || [],
+            voltage: snapshot.moduleTrends?.voltageFluctuationHistory || [],
+        },
+        "sensor-optimization": {
+            data: snapshot.sensorOptimization,
+            trends: snapshot.moduleTrends?.sensorOptimizationHistory || [],
+        },
+        "load-prediction": {
+            data: snapshot.loadFluctuationPrediction,
+            trends: snapshot.moduleTrends?.predictionHistory || [],
+        },
+        "component-health": {
+            data: snapshot.componentHealth,
+            trends: snapshot.moduleTrends?.componentHealthHistory || [],
+        },
+        "infrastructure-upgrades": {
+            data: snapshot.infrastructureRecommendations,
+            trends: snapshot.moduleTrends?.infrastructureHistory || [],
+        },
+        "grid-stability": {
+            data: snapshot.stabilityControl,
+            trends: snapshot.moduleTrends?.stabilityHistory || [],
+        },
+        "energy-flow": {
+            data: snapshot.energyFlow,
+            trends: snapshot.moduleTrends?.energyFlowHistory || [],
+        },
+        reports: snapshot.report,
+    };
+
+    const modulePayload = moduleMap[req.params.moduleName];
+    if (!modulePayload) {
+        res.status(404).json({ message: `Unknown module: ${req.params.moduleName}` });
+        return;
+    }
+
+    res.json({
+        module: req.params.moduleName,
+        updatedAt: snapshot.serverTime,
+        payload: modulePayload,
+    });
+});
+
 app.get("/api/protocol", (_req, res) => {
     res.json({
         transport: "websocket",
@@ -40,10 +106,12 @@ app.get("/api/protocol", (_req, res) => {
             "toggleNode",
             "toggleSimulation",
             "getNodeConfigs",
+            "applyRecommendation",
         ],
         payloads: {
             triggerOverload: { zone: 1 },
             toggleNode: { nodeName: "City Hospital" },
+            applyRecommendation: { id: "1713020012000-0", decision: "approved" },
         },
     });
 });

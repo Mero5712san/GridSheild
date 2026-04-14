@@ -14,6 +14,13 @@ import AlertsLog from './pages/AlertsLog';
 import ControlPanel from './pages/ControlPanel';
 import RecommendationCenter from './pages/RecommendationCenter';
 import ReportsCenter from './pages/ReportsCenter';
+import SubstationMonitoringPage from './pages/SubstationMonitoringPage';
+import SensorOptimizationPage from './pages/SensorOptimizationPage';
+import LoadPredictionPage from './pages/LoadPredictionPage';
+import ComponentHealthPage from './pages/ComponentHealthPage';
+import InfrastructureUpgradesPage from './pages/InfrastructureUpgradesPage';
+import GridStabilityPage from './pages/GridStabilityPage';
+import EnergyFlowPage from './pages/EnergyFlowPage';
 
 const AuthenticatedApp = () => {
     const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +55,13 @@ const AuthenticatedApp = () => {
                 <Route path="/alerts" element={<AlertsLog />} />
                 <Route path="/control" element={<ControlPanel />} />
                 <Route path="/recommendations" element={<RecommendationCenter />} />
+                <Route path="/substation-monitoring" element={<SubstationMonitoringPage />} />
+                <Route path="/sensor-optimization" element={<SensorOptimizationPage />} />
+                <Route path="/load-prediction" element={<LoadPredictionPage />} />
+                <Route path="/component-health" element={<ComponentHealthPage />} />
+                <Route path="/infrastructure-upgrades" element={<InfrastructureUpgradesPage />} />
+                <Route path="/grid-stability" element={<GridStabilityPage />} />
+                <Route path="/energy-flow" element={<EnergyFlowPage />} />
                 <Route path="/reports" element={<ReportsCenter />} />
                 <Route path="*" element={<PageNotFound />} />
             </Route>

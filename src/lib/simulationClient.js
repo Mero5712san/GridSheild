@@ -11,15 +11,32 @@ function createInitialState() {
         sensorOptimization: null,
         loadFluctuationPrediction: { zones: [] },
         componentHealth: null,
-        infrastructureRecommendations: [],
-        energyFlow: [],
+        infrastructureRecommendations: { actions: [], overloadedNodes: 0, upgradeRequired: 0, capacityShortage: 0 },
+        energyFlow: { flows: [], summary: { green: 0, yellow: 0, red: 0, blue: 0 } },
         stabilityControl: null,
+        moduleTrends: {
+            substationLoadHistory: [],
+            voltageFluctuationHistory: [],
+            sensorOptimizationHistory: [],
+            predictionHistory: [],
+            componentHealthHistory: [],
+            infrastructureHistory: [],
+            stabilityHistory: [],
+            energyFlowHistory: [],
+        },
         billing: null,
         report: null,
         overloadZone: null,
         disconnectedNodes: [],
         isRunning: true,
         instabilityActive: false,
+        pageFeeds: {
+            dashboard: null,
+            controlPanel: null,
+            alertsLog: null,
+            nodeMonitoring: null,
+            gridView3D: null,
+        },
         connectionStatus: "connecting",
         nodeConfigs: getNodeConfigs(),
         app: {
@@ -43,12 +60,6 @@ globalThis.__gridSimulationClient = store;
 
 function emit() {
     store.listeners.forEach((listener) => listener());
-}
-
-function setState(updater) {
-    const nextState = typeof updater === "function" ? updater(store.state) : updater;
-    store.state = nextState;
-    emit();
 }
 
 function getWsUrl() {
@@ -178,6 +189,10 @@ function toggleSimulation() {
     sendCommand("toggleSimulation");
 }
 
+function applyRecommendation(id, decision = "approved") {
+    sendCommand("applyRecommendation", { id, decision });
+}
+
 function ensureStarted() {
     if (store.started) return;
     store.started = true;
@@ -203,5 +218,6 @@ export {
     clearOverload,
     toggleNode,
     toggleSimulation,
+    applyRecommendation,
     connectBackend,
 };

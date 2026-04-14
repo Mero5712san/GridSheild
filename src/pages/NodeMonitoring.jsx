@@ -17,7 +17,8 @@ const priorityBadge = {
 };
 
 export default function NodeMonitoring() {
-    const { readings } = useSimulation();
+    const { readings, pageFeeds } = useSimulation();
+    const rows = pageFeeds?.nodeMonitoring?.rows || readings;
 
     return (
         <div className="space-y-6">
@@ -41,7 +42,7 @@ export default function NodeMonitoring() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {readings.map((node) => (
+                        {rows.map((node) => (
                             <TableRow key={node.name} className="border-border">
                                 <TableCell className="font-medium text-sm text-foreground">{node.name}</TableCell>
                                 <TableCell className="text-xs text-muted-foreground capitalize">{node.type.replace("_", " ")}</TableCell>

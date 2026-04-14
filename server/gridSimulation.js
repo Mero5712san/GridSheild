@@ -27,15 +27,71 @@ function createInitialState() {
         sensorOptimization: null,
         loadFluctuationPrediction: { zones: [] },
         componentHealth: null,
-        infrastructureRecommendations: [],
-        energyFlow: [],
+        infrastructureRecommendations: { actions: [], overloadedNodes: 0, upgradeRequired: 0, capacityShortage: 0 },
+        energyFlow: { flows: [], summary: { green: 0, yellow: 0, red: 0, blue: 0 } },
         stabilityControl: null,
+        moduleTrends: {
+            substationLoadHistory: [],
+            voltageFluctuationHistory: [],
+            sensorOptimizationHistory: [],
+            predictionHistory: [],
+            componentHealthHistory: [],
+            infrastructureHistory: [],
+            stabilityHistory: [],
+            energyFlowHistory: [],
+        },
         billing: null,
         report: null,
         overloadZone: null,
         disconnectedNodes: [],
         isRunning: true,
         instabilityActive: false,
+        pageFeeds: {
+            dashboard: null,
+            controlPanel: null,
+            alertsLog: null,
+            nodeMonitoring: null,
+            gridView3D: null,
+        },
+    };
+}
+
+function buildPageFeeds(state) {
+    const alerts = state.alerts || [];
+    const readings = state.readings || [];
+
+    return {
+        dashboard: {
+            gridHealth: state.gridHealth,
+            readings,
+            history: state.history || [],
+            alerts,
+        },
+        controlPanel: {
+            readings,
+            overloadZone: state.overloadZone,
+            disconnectedNodes: state.disconnectedNodes || [],
+            isRunning: state.isRunning,
+        },
+        alertsLog: {
+            alerts,
+            reversed: [...alerts].reverse(),
+            counts: {
+                critical: alerts.filter((a) => a.severity === "critical").length,
+                warning: alerts.filter((a) => a.severity === "warning").length,
+                success: alerts.filter((a) => a.severity === "success").length,
+                info: alerts.filter((a) => a.severity === "info").length,
+            },
+        },
+        nodeMonitoring: {
+            rows: readings,
+        },
+        gridView3D: {
+            readings,
+            gridHealth: state.gridHealth,
+            energyFlow: state.energyFlow,
+            instabilityActive: state.instabilityActive,
+        },
     };
 }
 
@@ -146,6 +202,7 @@ export class GridSimulationRuntime {
 
         const totalLoad = data.reduce((sum, reading) => sum + reading.power, 0);
         const predicted = totalLoad * (1 + (Math.random() - 0.3) * 0.15);
+        const timeLabel = new Date().toLocaleTimeString();
         const substationMonitoring = getSubstationMonitoring(data);
         const loadFluctuationPrediction = getLoadFluctuationPrediction(data);
         const componentHealth = getComponentHealth(data);
@@ -161,6 +218,66 @@ export class GridSimulationRuntime {
             infrastructureRecommendations,
             stabilityControl
         );
+
+        const avgSubstationLoad = Math.round(
+            substationMonitoring.reduce((sum, station) => sum + station.transformerLoadPercent, 0)
+            / Math.max(substationMonitoring.length, 1)
+        );
+        const avgVoltage = Math.round(
+            substationMonitoring.reduce((sum, station) => sum + station.voltage, 0)
+            / Math.max(substationMonitoring.length, 1)
+        );
+
+        const moduleTrends = {
+            substationLoadHistory: [...this.state.moduleTrends.substationLoadHistory, {
+                time: timeLabel,
+                avgLoad: avgSubstationLoad,
+                peakUtilization: Math.max(...substationMonitoring.map((station) => station.transformerLoadPercent), 0),
+            }].slice(-40),
+            voltageFluctuationHistory: [...this.state.moduleTrends.voltageFluctuationHistory, {
+                time: timeLabel,
+                avgVoltage,
+                minVoltage: Math.min(...substationMonitoring.map((station) => station.voltage), avgVoltage),
+                maxVoltage: Math.max(...substationMonitoring.map((station) => station.voltage), avgVoltage),
+            }].slice(-40),
+            sensorOptimizationHistory: [...this.state.moduleTrends.sensorOptimizationHistory, {
+                time: timeLabel,
+                requiredSensors: sensorOptimization.requiredSensors,
+                savings: sensorOptimization.savingPercent,
+                coverage: sensorOptimization.coveragePercent,
+            }].slice(-40),
+            predictionHistory: [...this.state.moduleTrends.predictionHistory, {
+                time: timeLabel,
+                current: loadFluctuationPrediction.timeline[0]?.value ?? 0,
+                predicted: loadFluctuationPrediction.timeline[2]?.value ?? 0,
+                overloadProbability: loadFluctuationPrediction.overloadProbability,
+            }].slice(-40),
+            componentHealthHistory: [...this.state.moduleTrends.componentHealthHistory, {
+                time: timeLabel,
+                averageHealth: componentHealth.averageHealth,
+                atRisk: componentHealth.atRiskCount,
+                failureProbability: componentHealth.failureProbability,
+            }].slice(-40),
+            infrastructureHistory: [...this.state.moduleTrends.infrastructureHistory, {
+                time: timeLabel,
+                overloadedNodes: infrastructureRecommendations.overloadedNodes,
+                capacityShortage: infrastructureRecommendations.capacityShortage,
+                upgradeRequired: infrastructureRecommendations.upgradeRequired,
+            }].slice(-40),
+            stabilityHistory: [...this.state.moduleTrends.stabilityHistory, {
+                time: timeLabel,
+                stabilityScore: stabilityControl.stabilityScore,
+                gridBalance: stabilityControl.gridBalancePercent,
+                imbalanceNodes: stabilityControl.imbalanceNodes,
+            }].slice(-40),
+            energyFlowHistory: [...this.state.moduleTrends.energyFlowHistory, {
+                time: timeLabel,
+                green: energyFlow.summary.green,
+                yellow: energyFlow.summary.yellow,
+                red: energyFlow.summary.red,
+                blue: energyFlow.summary.blue,
+            }].slice(-40),
+        };
 
         this.state = {
             ...this.state,
@@ -180,6 +297,7 @@ export class GridSimulationRuntime {
             infrastructureRecommendations,
             energyFlow,
             stabilityControl,
+            moduleTrends,
             billing,
             report: generateReportPayload({
                 gridHealth: health,
@@ -192,6 +310,11 @@ export class GridSimulationRuntime {
                 alerts: [...this.state.alerts, ...newAlerts].slice(-50),
             }),
             instabilityActive: this.instabilityRef.ticks > 0 || instabilityLevel > 0,
+        };
+
+        this.state = {
+            ...this.state,
+            pageFeeds: buildPageFeeds(this.state),
         };
 
         if (this.instabilityRef.ticks > 0) {
@@ -221,6 +344,10 @@ export class GridSimulationRuntime {
                 ...this.state.alerts,
             ].slice(0, 50),
         };
+        this.state = {
+            ...this.state,
+            pageFeeds: buildPageFeeds(this.state),
+        };
         this.emit();
         this.runTick();
     }
@@ -249,6 +376,10 @@ export class GridSimulationRuntime {
 
     toggleSimulation() {
         this.state = { ...this.state, isRunning: !this.state.isRunning };
+        this.state = {
+            ...this.state,
+            pageFeeds: buildPageFeeds(this.state),
+        };
         this.emit();
         if (this.state.isRunning) {
             this.runTick();
@@ -280,6 +411,36 @@ export class GridSimulationRuntime {
             case "toggleSimulation":
                 this.toggleSimulation();
                 break;
+            case "applyRecommendation": {
+                const id = message?.id;
+                const decision = message?.decision || "approved";
+                if (id) {
+                    const recommendationEngine = this.state.recommendationEngine.map((item) =>
+                        item.id === id
+                            ? { ...item, status: decision, handledAt: new Date().toISOString() }
+                            : item
+                    );
+                    this.state = {
+                        ...this.state,
+                        recommendationEngine,
+                        alerts: [
+                            ...this.state.alerts,
+                            {
+                                severity: decision === "rejected" ? "warning" : "info",
+                                message: `Recommendation ${decision}`,
+                                action: `Action ID: ${id}`,
+                                time: new Date().toLocaleTimeString(),
+                            },
+                        ].slice(-50),
+                    };
+                    this.state = {
+                        ...this.state,
+                        pageFeeds: buildPageFeeds(this.state),
+                    };
+                    this.emit();
+                }
+                break;
+            }
             case "getNodeConfigs":
                 client.send(JSON.stringify({ type: "nodeConfigs", nodes: getNodeConfigs() }));
                 break;

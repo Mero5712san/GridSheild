@@ -21,11 +21,18 @@ export default function ControlPanel() {
         overloadZone,
         disconnectedNodes,
         isRunning,
+        pageFeeds,
         triggerOverload,
         clearOverload,
         toggleNode,
         toggleSimulation,
     } = useSimulation();
+
+    const controlFeed = pageFeeds?.controlPanel;
+    const feedReadings = controlFeed?.readings || readings;
+    const feedOverloadZone = controlFeed?.overloadZone ?? overloadZone;
+    const feedDisconnectedNodes = controlFeed?.disconnectedNodes || disconnectedNodes;
+    const feedIsRunning = controlFeed?.isRunning ?? isRunning;
 
     return (
         <div className="space-y-6">
@@ -35,11 +42,11 @@ export default function ControlPanel() {
                 </div>
                 <Button
                     onClick={toggleSimulation}
-                    variant={isRunning ? "destructive" : "default"}
+                    variant={feedIsRunning ? "destructive" : "default"}
                     className="gap-2"
                 >
-                    {isRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    {isRunning ? "Pause Simulation" : "Resume Simulation"}
+                    {feedIsRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    {feedIsRunning ? "Pause Simulation" : "Resume Simulation"}
                 </Button>
             </div>
 
@@ -48,34 +55,34 @@ export default function ControlPanel() {
                 <h3 className="text-sm font-semibold text-foreground mb-1">Overload Simulation</h3>
                 <div className="flex flex-wrap gap-3">
                     <Button
-                        variant={overloadZone === 1 ? "destructive" : "outline"}
+                        variant={feedOverloadZone === 1 ? "destructive" : "outline"}
                         size="sm"
-                        onClick={() => (overloadZone === 1 ? clearOverload() : triggerOverload(1))}
+                        onClick={() => (feedOverloadZone === 1 ? clearOverload() : triggerOverload(1))}
                         className="gap-2"
                     >
                         <Zap className="w-3.5 h-3.5" />
-                        {overloadZone === 1 ? "Stop Zone 1 Overload" : "Overload Zone 1"}
+                        {feedOverloadZone === 1 ? "Stop Zone 1 Overload" : "Overload Zone 1"}
                     </Button>
                     <Button
-                        variant={overloadZone === 2 ? "destructive" : "outline"}
+                        variant={feedOverloadZone === 2 ? "destructive" : "outline"}
                         size="sm"
-                        onClick={() => (overloadZone === 2 ? clearOverload() : triggerOverload(2))}
+                        onClick={() => (feedOverloadZone === 2 ? clearOverload() : triggerOverload(2))}
                         className="gap-2"
                     >
                         <Zap className="w-3.5 h-3.5" />
-                        {overloadZone === 2 ? "Stop Zone 2 Overload" : "Overload Zone 2"}
+                        {feedOverloadZone === 2 ? "Stop Zone 2 Overload" : "Overload Zone 2"}
                     </Button>
-                    {overloadZone && (
+                    {feedOverloadZone && (
                         <Button variant="ghost" size="sm" onClick={clearOverload} className="gap-2 text-green-400">
                             <ShieldCheck className="w-3.5 h-3.5" />
                             Clear All Overloads
                         </Button>
                     )}
                 </div>
-                {overloadZone && (
+                {feedOverloadZone && (
                     <div className="mt-3 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
                         <p className="text-xs text-red-400 font-medium">
-                            ⚡ Zone {overloadZone} overload active — AI prevention system engaged
+                            ⚡ Zone {feedOverloadZone} overload active — AI prevention system engaged
                         </p>
                     </div>
                 )}
@@ -86,8 +93,8 @@ export default function ControlPanel() {
                 <h3 className="text-sm font-semibold text-foreground mb-1">Node Controls</h3>
                 <p className="text-xs text-muted-foreground mb-4">Manually enable or disable individual grid nodes</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {readings.map((node) => {
-                        const isDisconnected = disconnectedNodes.includes(node.name);
+                    {feedReadings.map((node) => {
+                        const isDisconnected = feedDisconnectedNodes.includes(node.name);
                         return (
                             <div
                                 key={node.name}

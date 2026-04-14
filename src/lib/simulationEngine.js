@@ -214,12 +214,14 @@ export function getSubstationMonitoring(readings) {
     const substations = readings.filter((node) => node.type === "substation" || node.type === "power_station");
 
     return substations.map((node) => ({
+        id: node.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
         node: node.name,
         zone: node.zone,
         transformerLoadPercent: Math.round(node.loadPercent),
         voltage: node.voltage,
         current: node.current,
         power: node.power,
+        maxLoad: node.maxLoad,
         overloadRisk: node.loadPercent >= 90 ? "high" : node.loadPercent >= 75 ? "medium" : "low",
         status: node.status,
     }));
@@ -266,11 +268,43 @@ export function getLoadFluctuationPrediction(readings) {
         };
     });
 
+    const projectedLoads = zoneForecast.map((zone) => zone.projectedLoadPercent);
+    const predictedPeakLoad = projectedLoads.length > 0 ? Math.max(...projectedLoads) : 0;
     const highRiskZones = zoneForecast.filter((zone) => zone.risk === "high");
+    const mediumRiskZones = zoneForecast.filter((zone) => zone.risk === "medium");
     const peakWindow = highRiskZones.length > 0 ? "next 15 minutes" : "next hour";
+    const overloadProbability = Math.min(100, Math.round(highRiskZones.length * 22 + mediumRiskZones.length * 9));
+
+    const trendWeights = {
+        spike: 3,
+        increasing: 2,
+        stable: 1,
+        dropping: 0,
+    };
+    const dominantTrend =
+        [...zoneForecast]
+            .sort((a, b) => (trendWeights[b.trend] || 0) - (trendWeights[a.trend] || 0))[0]?.trend || "stable";
+
+    const avgCurrent = Math.round(
+        zoneForecast.reduce((sum, zone) => sum + zone.currentLoadPercent, 0) / Math.max(zoneForecast.length, 1)
+    );
+    const avgProjected = Math.round(
+        zoneForecast.reduce((sum, zone) => sum + zone.projectedLoadPercent, 0) / Math.max(zoneForecast.length, 1)
+    );
+
+    const timeline = [
+        { point: "Now", value: avgCurrent },
+        { point: "+5m", value: Math.round(avgCurrent + (avgProjected - avgCurrent) * 0.55) },
+        { point: "+10m", value: avgProjected },
+    ];
 
     return {
         zones: zoneForecast,
+        predictedPeakLoad,
+        overloadProbability,
+        currentTrend: dominantTrend,
+        riskZones: highRiskZones.map((zone) => zone.zone),
+        timeline,
         peakLoadWindow: peakWindow,
         suddenSpikeRisk: highRiskZones.length > 0,
     };
@@ -292,6 +326,8 @@ export function getComponentHealth(readings) {
         const currentInstability = Math.abs(node.current - node.baseCurrent) / Math.max(node.baseCurrent, 1);
         const healthPenalty = utilization * 0.35 + stressCycles * 8 + voltageInstability * 100 * 0.25 + currentInstability * 100 * 0.2;
         const healthScore = Math.max(5, Math.min(100, Math.round(100 - healthPenalty)));
+        const risk = healthScore < 45 ? "critical" : healthScore < 65 ? "warning" : "healthy";
+        const failureProbability = Math.min(98, Math.max(2, Math.round(100 - healthScore + stressCycles * 3)));
 
         return {
             name: node.name,
@@ -300,6 +336,8 @@ export function getComponentHealth(readings) {
             utilization: Math.round(utilization),
             stressCycles,
             healthScore,
+            risk,
+            failureProbability,
             warning: healthScore < 65,
         };
     });
@@ -311,6 +349,10 @@ export function getComponentHealth(readings) {
     return {
         components,
         averageHealth,
+        failureProbability: Math.round(
+            components.reduce((sum, component) => sum + component.failureProbability, 0) / Math.max(components.length, 1)
+        ),
+        criticalNodes: components.filter((component) => component.risk === "critical").length,
         atRiskCount: components.filter((component) => component.warning).length,
     };
 }
@@ -368,7 +410,17 @@ export function getInfrastructureRecommendations(readings, componentHealth) {
             });
         });
 
-    return recommendations.slice(0, 8);
+    const overloadedNodes = readings.filter((node) => node.loadPercent >= 85).length;
+    const totalPower = readings.reduce((sum, node) => sum + node.power, 0);
+    const totalCapacity = readings.reduce((sum, node) => sum + node.maxLoad, 0);
+    const capacityShortage = Math.max(0, Math.round((totalPower / Math.max(totalCapacity, 1)) * 100 - 75));
+
+    return {
+        actions: recommendations.slice(0, 8),
+        overloadedNodes,
+        upgradeRequired: recommendations.length,
+        capacityShortage,
+    };
 }
 
 export function getSensorOptimization(readings) {
@@ -392,18 +444,32 @@ export function getSensorOptimization(readings) {
     });
 
     const requiredSensors = placementPlan.reduce((sum, zone) => sum + zone.recommendedSensors, 0);
+    const totalPossibleCoverage = readings.length;
+    const sensorTable = placementPlan.flatMap((zonePlan, zoneIdx) =>
+        zonePlan.locations.map((location, idx) => ({
+            sensor: `S-${zonePlan.zone}-${idx + 1}`,
+            zone: zonePlan.zone,
+            location,
+            coverageNodes: Math.max(1, Math.round(totalPossibleCoverage / Math.max(requiredSensors, 1))),
+            efficiency: Math.min(98, 70 + zoneIdx * 4 + idx * 3),
+            cost: 850 + idx * 90 + zoneIdx * 40,
+        }))
+    );
+    const coveragePercent = Math.min(100, Math.round((requiredSensors * 3.1 / Math.max(readings.length, 1)) * 100));
 
     return {
         totalNodes: readings.length,
         criticalNodes: criticalNodes.length,
         requiredSensors,
+        coveragePercent,
+        sensorTable,
         savingPercent: Math.round((1 - requiredSensors / Math.max(readings.length, 1)) * 100),
         placementPlan,
     };
 }
 
 export function getEnergyFlowVisualization(readings) {
-    return readings.map((node) => {
+    const flows = readings.map((node) => {
         let flowColor = "green";
         if (node.status === "critical") flowColor = "red";
         else if (node.status === "warning") flowColor = "yellow";
@@ -416,6 +482,16 @@ export function getEnergyFlowVisualization(readings) {
             intensity: Math.min(100, Math.round(node.loadPercent)),
         };
     });
+
+    const summary = flows.reduce((acc, flow) => {
+        acc[flow.flowColor] = (acc[flow.flowColor] || 0) + 1;
+        return acc;
+    }, { green: 0, yellow: 0, red: 0, blue: 0 });
+
+    return {
+        flows,
+        summary,
+    };
 }
 
 export function getGridStabilityControl(readings, health) {
@@ -432,10 +508,30 @@ export function getGridStabilityControl(readings, health) {
         activeControls.push("voltage-stabilization");
     }
 
+    const byZone = readings.reduce((acc, node) => {
+        if (!acc[node.zone]) {
+            acc[node.zone] = { zone: node.zone, load: 0, count: 0 };
+        }
+        acc[node.zone].load += node.loadPercent;
+        acc[node.zone].count += 1;
+        return acc;
+    }, {});
+    const feederBalance = Object.values(byZone).map((zone) => ({
+        zone: zone.zone,
+        avgLoad: Math.round(zone.load / Math.max(zone.count, 1)),
+    }));
+    const maxFeeder = Math.max(...feederBalance.map((zone) => zone.avgLoad), 0);
+    const minFeeder = Math.min(...feederBalance.map((zone) => zone.avgLoad), 0);
+    const gridBalancePercent = Math.max(0, Math.min(100, 100 - (maxFeeder - minFeeder)));
+    const stabilityScore = Math.max(0, Math.min(100, Math.round((health.healthScore * 0.65 + gridBalancePercent * 0.35))));
+
     return {
         imbalanceDetected: imbalance > 0,
         imbalanceNodes: imbalance,
         activeControls,
+        feederBalance,
+        gridBalancePercent,
+        stabilityScore,
         mode: health.healthScore < 60 ? "stabilization" : "normal",
     };
 }
@@ -481,6 +577,15 @@ export function getEnergyUsageBilling(readings) {
 }
 
 export function getRecommendationEngine(readings, loadActions, loadForecast, infrastructureRecommendations, stability) {
+    const now = new Date();
+    const toItem = (item, index) => ({
+        id: `${now.getTime()}-${index}`,
+        ...item,
+        timestamp: now.toISOString(),
+        time: now.toLocaleTimeString(),
+        affectedZones: item.affectedZones || [],
+        status: "pending",
+    });
     const suggestions = [];
     const criticalInfra = readings.filter(
         (node) => node.priority === "high" && (node.status === "warning" || node.status === "critical")
@@ -492,6 +597,7 @@ export function getRecommendationEngine(readings, loadActions, loadForecast, inf
             priority: action.priority === "low" ? "medium" : "high",
             message: `${action.action === "disconnect" ? "Reduce non-critical load" : "Reduce medium load"} at ${action.node}`,
             action: action.reason,
+            affectedZones: [action.zone],
         });
     });
 
@@ -503,6 +609,7 @@ export function getRecommendationEngine(readings, loadActions, loadForecast, inf
                 priority: "high",
                 message: `Load spike expected in Zone ${zone.zone}`,
                 action: `Projected load ${zone.projectedLoadPercent}%`,
+                affectedZones: [zone.zone],
             });
         });
 
@@ -512,6 +619,7 @@ export function getRecommendationEngine(readings, loadActions, loadForecast, inf
             priority: "high",
             message: "Increase supply to critical infrastructure",
             action: `Priority nodes under stress: ${criticalInfra.slice(0, 3).map((node) => node.name).join(", ")}`,
+            affectedZones: [...new Set(criticalInfra.map((node) => node.zone))],
         });
     }
 
@@ -521,15 +629,17 @@ export function getRecommendationEngine(readings, loadActions, loadForecast, inf
             priority: "medium",
             message: "Balance load across feeders",
             action: "Shift medium-priority demand away from peak zones",
+            affectedZones: loadForecast.zones.filter((zone) => zone.projectedLoadPercent >= 78).map((zone) => zone.zone),
         });
     }
 
-    infrastructureRecommendations.slice(0, 3).forEach((item) => {
+    infrastructureRecommendations.actions.slice(0, 3).forEach((item) => {
         suggestions.push({
             type: "infrastructure",
             priority: item.priority,
             message: item.action,
             action: item.reason,
+            affectedZones: [item.zone],
         });
     });
 
@@ -539,6 +649,7 @@ export function getRecommendationEngine(readings, loadActions, loadForecast, inf
             priority: "high",
             message: "Activate grid stabilization mode",
             action: `Controls: ${stability.activeControls.join(", ")}`,
+            affectedZones: stability.feederBalance.filter((zone) => zone.avgLoad > 75).map((zone) => zone.zone),
         });
     }
 
@@ -548,10 +659,11 @@ export function getRecommendationEngine(readings, loadActions, loadForecast, inf
             priority: "low",
             message: "Grid stable, continue balanced feeder strategy",
             action: "No immediate intervention required",
+            affectedZones: [],
         });
     }
 
-    return suggestions.slice(0, 10);
+    return suggestions.slice(0, 10).map((item, index) => toItem(item, index));
 }
 
 export function generateReportPayload({
