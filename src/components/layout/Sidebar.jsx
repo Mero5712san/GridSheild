@@ -6,7 +6,7 @@ import useSimulation from "@/hooks/useSimulation";
 
 const baseNavItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/grid-3d", label: "stimulation", icon: Globe },
+    { path: "/grid-3d", label: "simulation", icon: Globe },
     { path: "/nodes", label: "Node Monitor", icon: Activity },
     { path: "/alerts", label: "Alerts Log", icon: AlertTriangle },
     { path: "/control", label: "Control Panel", icon: Settings },
